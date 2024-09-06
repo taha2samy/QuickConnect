@@ -16,7 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-
+from rooms.views import Home,Room,create_room
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("",Home,name="Home"),
+    path("room/<str:room_id>/",Room,name="Room"),
+    path('create-room/', create_room, name='create_room'),
 ]
+handler404 = 'rooms.views.Home'

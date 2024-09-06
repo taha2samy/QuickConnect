@@ -21,16 +21,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-r)%&d-!_e&iys7!kkl871@=)nwl+l-vx&1jwq*cj1o3!$vw_6k'
-
+KEY=b'rE_u1FSWlkSUjNDWFUPDbwBXPdA26qRHC39Bn0ERRTw='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
+import os
+import tempfile
 
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(tempfile.gettempdir(), 'django_cache'),  # Use the temp directory
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000  # Optional: max number of entries
+        }
+    }
+}
+ASGI_APPLICATION = 'QuickConnect.asgi.application'  
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
+    'rooms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +62,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 ROOT_URLCONF = 'QuickConnect.urls'
 

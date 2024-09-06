@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+
+    <title>Quick Chat</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            margin-top: 80px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff;
+        }
+        .btn-custom {
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9em;
+        }
+        .room-list {
+            margin-top: 40px;
+        }
+        .progress-wrapper {
+            margin-top: 20px;
+        }
+        .join-room {
+            margin-top: 50px;
+        }
+        .qrcode {
+            margin-top: 10px;
+            overflow: none;
+           
+        }
+        .qrcode img{
+            max-height: 100px;
+            width: 100%;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="mb-4"><i class="fas fa-comments"></i> Welcome to Quick Chat</h1>
+    <p class="lead">Choose an option to get started:</p>
+    
+    {% if messages %}
+        <div class="alert alert-info" role="alert">
+            <ul class="list-unstyled mb-0">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    {% if user.is_authenticated %}
+        <button id="create-room-btn" class="btn btn-primary btn-lg btn-custom mb-4">Create Room</button>
+
+        <div class="room-list row justify-content-center">
+            <h3 class="mb-4 col-12 text-left">Your Rooms</h3>
+            {% if Rooms %}
+                {% for room in Rooms %}
+                    {% for room_name, expiration_timestamp in room.items %}
+                        <div class="col-md-4">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-body text-left">
+                                    <h5 class="card-title">{{ room_name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Time Remaining:</strong>
+                                        <span class="time-remaining text-primary" data-expiration="{{ expiration_timestamp }}"></span>
+                                    </p>
+                                    <div class="progress-wrapper">
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%" id="progress-bar-{{ room_name }}"></div>
+                                        </div>
+                                    </div>
+                                    <!-- Barcode Generation -->
+                                    <div class="qrcode" qrCodeValue="{{ room_name }}">
+                                        <img id="qrCodeImg-{{ forloop.counter }}" alt="QR Code" class="mb-3 border rounded" style="max-width: 150px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p class="col-12 text-left">No rooms available.</p>
+            {% endif %}
+        </div>
+        
+    {% endif %}
+
+    <div class="join-room text-left">
+        <h4 class="mb-3">Join a Room</h4>
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                {% if user.is_authenticated %}
+                    <h4>Welcome, {{ user.username }}!</h4>
+                {% else %}
+                    {% if request.session.username %}
+                        <h5>Welcome, {{ request.session.username }}!</h5>
+                    {% else %}
+                        <label for="username">Enter Your Name:</label>
+                        <input type="hidden" name="username" value="{{ request.session.username }}">
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Enter your name" required>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="secretCode">Enter Secret Code:</label>
+                <input type="text" class="form-control" id="secretCode" name="secretCode" placeholder="Enter your secret code" required>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-lg btn-custom">Join Room</button>
+        </form>
+
+        <h5 class="mb-3 mt-4">Or Join Using:</h5>
+        <a href="scan_qr.html" class="btn btn-info btn-custom">Scan Barcode <i class="fas fa-qrcode"></i></a>
+    </div>
+
+    <div class="footer text-muted">
+        <p>© 2024 Quick Chat. All rights reserved.</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+document.getElementById('create-room-btn').onclick = function() {
+    fetch("{% url 'create_room' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Room created successfully!");
+            location.reload();
+        } else {
+            alert("Error creating room.");
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+    });
+};
+
+function updateRemainingTime() {
+    const roomElements = document.querySelectorAll('.time-remaining');
+    const now = new Date().getTime() / 1000;
+
+    roomElements.forEach(room => {
+        const expirationTimestamp = parseFloat(room.getAttribute('data-expiration'));
+        const timeRemaining = expirationTimestamp - now;
+
+        if (timeRemaining > 0) {
+            const days = Math.floor(timeRemaining / (3600 * 24));
+            const hours = Math.floor((timeRemaining % (3600 * 24)) / 3600);
+            const minutes = Math.floor((timeRemaining % 3600) / 60);
+            const seconds = Math.floor(timeRemaining % 60);
+
+            room.textContent = `${days} Days : ${hours} Hours : ${minutes} Minutes : ${seconds} Seconds`;
+
+            const roomName = room.previousElementSibling.innerHTML.trim();
+            const progressBar = document.getElementById(`progress-bar-${roomName}`);
+
+            if (progressBar) {
+                const totalDuration = expirationTimestamp - (expirationTimestamp - 24 * 3600);
+                const elapsedTime = totalDuration - timeRemaining;
+                const progressPercent = (elapsedTime / totalDuration) * 100;
+                progressBar.style.width = `${progressPercent}%`;
+            }
+        } else {
+            room.textContent = 'Expired';
+            const roomName = room.previousElementSibling.innerHTML.trim();
+            const progressBar = document.getElementById(`progress-bar-${roomName}`);
+
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        }
+    });
+}
+
+setInterval(updateRemainingTime, 1000);
+updateRemainingTime();
+
+// Generate QR codes for each room
+const qrCodes = document.querySelectorAll('.qrcode');
+
+qrCodes.forEach((qrCode, index) => {
+    const codeValue = qrCode.getAttribute('qrCodeValue');
+    const imgElementId = `qrCodeImg-${index + 1}`; // Generate unique IDs based on index
+    const qr = new QRious({
+        element: document.getElementById(imgElementId),
+        value: codeValue,
+        size: 200,
+    });
+    qrCode.querySelector('img').src = qr.toDataURL();
+});
+</script>
+
+</body>
+</html>

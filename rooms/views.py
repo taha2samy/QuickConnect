@@ -1,5 +1,4 @@
 from django.shortcuts import render,redirect
-from asgiref.sync import sync_to_async
 from django.core.cache import cache
 from cryptography.fernet import Fernet
 from django.contrib import messages
@@ -9,6 +8,7 @@ import datetime
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 import json
 cache.clear()
 class RoomCache:
@@ -33,8 +33,8 @@ class RoomCache:
         for key, value in kwargs.items():
             self.room_data[key] = value
 
-        cache.set(self.cache_key, self.room_data, timeout=86400)
-        cache.set(self.cache_key_messages,[],timeout=86400)
+        cache.set(self.cache_key, self.room_data, timeout=settings.TIME_OUT)
+        cache.set(self.cache_key_messages,[],timeout=settings.TIME_OUT)
     def get_data(self):
         return cache.get(self.cache_key)
 
@@ -80,15 +80,16 @@ def create_room(request):
     data = json.loads(request.body)
 
     now = datetime.datetime.now()
+    expiration_time = now + datetime.timedelta(seconds=settings.TIME_OUT)
     current_user = str(request.user)
     room_cache = RoomCache(key_of_room:=f"{current_user}{int(now.timestamp()*1000000)}")
-    room_cache.set_data(users=[], attr="value")
+    room_cache.set_data(users=[],expair=expiration_time, attr="value")
     
     # Get cached rooms for the user, default to an empty list if no cache is found
     y = cache.get(current_user, [])
 
     # Prepare new cache data with a timestamp one day ahead
-    expiration_time = now + datetime.timedelta(days=1)
+    
     new_entry = {key_of_room: expiration_time.timestamp()}
 
     # Remove any expired entries from the cache (entries with timestamps less than now)
@@ -127,7 +128,7 @@ def Home(request,*kargs,**kwargs):
                     # No username in session, create one
                     request.session['username'] = f"{username}{int(datetime.datetime.now().timestamp() * 1000000)}"
                     room.add_user(request.session['username'])
-                    request.session.set_expiry(86400)  # Set session expiry to 1 day
+                    request.session.set_expiry(settings.TIME_OUT)  # Set session expiry to 1 day
                     return redirect('Room', room_id=str(encrypt_message(key, secret_code)))
         else:
             messages.error(request, "Room does not exist or you cannot join.")

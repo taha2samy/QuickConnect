@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet"  href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
     <title>Chat Room - Quick Chat</title>
@@ -116,8 +116,9 @@
                     <!-- رسائل الدردشة -->
                 </div>
     
-                <form id="chatForm">
+                <form id="chatForm" enctype="multipart/form-data">
                     <div class="input-group">
+                        <input type="file" class="form-control" id="fileInput" style="max-width: 200px;">
                         <input type="text" class="form-control" id="messageInput" placeholder="Type your message..." required>
                         <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i> Send</button>
                     </div>
@@ -164,7 +165,7 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         const chatSocket = new WebSocket(`ws://${window.location.host}/ws/room/{{secretcode}}/`);
-        let lastSender = null; // Track the last sender
+        let lastSender = null;
 
         chatSocket.onopen = function(e) {
             console.log("WebSocket connection opened.");
@@ -176,15 +177,12 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            console.log(data)
-            console.log(data.type)
             if (data.type === 'add_user') {
                 addUserToList(data.message.username);
             } else if (data.type === 'remove_user') {
                 removeUserFromList(data.message.username);
             } else if (data.type === 'send_message') {
-                console.log(data,111111111111)
-                addMessageToChat(data.username, data.message);
+                addMessageToChat(data.username, data.message, data.file);
             }
         };
 
@@ -199,14 +197,33 @@
         document.getElementById('chatForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const messageInput = document.getElementById('messageInput');
+            const fileInput = document.getElementById('fileInput');
             const message = messageInput.value;
+            const file = fileInput.files[0];
 
-            chatSocket.send(JSON.stringify({
-                'type': 'send_message',
-                'message': message
-            }));
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fileData = e.target.result;
+                    chatSocket.send(JSON.stringify({
+                        'type': 'send_message',
+                        'message': message || '',
+                        'file': {
+                            'filename': file.name,
+                            'content': fileData
+                        }
+                    }));
+                };
+                reader.readAsDataURL(file);
+            } else {
+                chatSocket.send(JSON.stringify({
+                    'type': 'send_message',
+                    'message': message
+                }));
+            }
 
             messageInput.value = '';
+            fileInput.value = '';
         });
 
         window.addEventListener('beforeunload', function() {
@@ -223,45 +240,55 @@
             }
         }
 
-        function addMessageToChat(username, message) {
-            const chatWindow = document.getElementById('chatWindow');
-            const messageElement = document.createElement('div');
-            const isSameSender = lastSender === username;
-            lastSender = username; // Update last sender
+function addMessageToChat(username, message, file = null) {
+    const chatWindow = document.getElementById('chatWindow');
+    const messageElement = document.createElement('div');
+    const isSameSender = lastSender === username;
+    lastSender = username;
 
-            messageElement.className = 'message ' + (username === user ? 'sent' : 'received');
-            messageElement.innerHTML = `
-                <div class="message-header">
-                    ${!isSameSender ? (username === user ? 'You' : username) : ''}
-                </div>
-                <div class="message-content">
-                    <div class="message-text">${message}</div>
-                </div>
-            `;
+    messageElement.className = 'message ' + (username === user ? 'sent' : 'received');
+    const baseURL = window.location.origin
+messageElement.innerHTML = `
+    <div class="message-header">
+        ${!isSameSender ? (username === user ? 'You' : username) : ''}
+    </div>
+    <div class="message-content">
+        <div class="message-text">${message}</div>
+        ${file ? 
+            (/\.(jpg|jpeg|png|svg)$/i.test(file.file_name) ? 
+                `
+                <img src="${baseURL}/${file.file_url}" alt="${file.file_name}" style="max-width: 100%; height: auto;" />
+                <br>
+                <a href="${baseURL}/${file.file_url}" target="_blank">Download ${file.file_name}</a>
+                ` : 
+                `<a href="${baseURL}/${file.file_url}" target="_blank">Download ${file.file_name}</a>`
+            ) : ''}
+    </div>
+`;
 
-            chatWindow.appendChild(messageElement);
-            chatWindow.scrollTop = chatWindow.scrollHeight; // Scroll to the bottom
-        }
-    });
 
-    function addUserToList(username) {
+    chatWindow.appendChild(messageElement);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+
+function addUserToList(username) {
     const userList = document.getElementById('userList');
     
-    // التأكد من عدم وجود العضو في القائمة مسبقاً
-    const existingUser = Array.from(userList.getElementsByTagName('li')).find(
-        user => user.textContent.toLowerCase() === username.toLowerCase()
-    );
-    
-    // إضافة العضو إذا لم يكن موجودًا بالفعل
-    if (!existingUser) {
-        const userItem = document.createElement('li');
-        userItem.textContent = username;
-        userItem.id = username;
-        userItem.classList.add('list-group-item'); // إضافة كلاس bootstrap لعنصر الـ <li>
-        
-        userList.appendChild(userItem);
+    // تحقق مما إذا كان العنصر موجودًا بالفعل
+    if (document.getElementById(username)) {
+        console.log(`User ${username} already exists in the list.`);
+        return; // إذا كان العنصر موجودًا، نخرج من الدالة
     }
+
+    const userItem = document.createElement('li');
+    userItem.className = 'list-group-item';
+    userItem.id = username;
+    userItem.textContent = username;
+    userList.appendChild(userItem);
 }
+
+    });
 </script>
 
 </body>

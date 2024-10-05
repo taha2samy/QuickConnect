@@ -17,10 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from rooms.views import Home,Room,create_room
+from django.conf.urls.static import static
+from django.conf import settings
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("",Home,name="Home"),
     path("room/<str:room_id>/",Room,name="Room"),
     path('create-room/', create_room, name='create_room'),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 handler404 = 'rooms.views.Home'

@@ -1,9 +1,4 @@
-<div style="display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center;">
-    <h1 style="margin: 0;">
-        Quick Connect 
-        ![alt text](logo.svg)
-    </h1>
-</div>
+# ![alt text](logo.svg) Quick Connect
 
 
 

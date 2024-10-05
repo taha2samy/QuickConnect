@@ -101,6 +101,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Quick Connect** – Instant connections, anywhere, anytime.
-```
 
 Feel free to modify the structure or the content based on your specific project details.

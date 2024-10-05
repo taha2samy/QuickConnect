@@ -14,44 +14,54 @@ cache.clear()
 class RoomCache:
     def __init__(self, token):
         self.token = token
-        self.cache_key = f"token{token}"  # Create the key in the desired format
+        self.cache_key = f"{token}"
+        self.cache_key_messages=f"message{token}" 
         self.room_data = {
-            "token_of_room": token,  # Set default token_of_room value
-            "users": [],  # Initialize users as an empty list
+            "token_of_room": token, 
+            "users": [],
         }
+    def add_message(self,message):
+        messageses = cache.get(self.cache_key_messages,[])
+        messageses.append(message)
+        cache.set(self.cache_key_messages,messageses)
+    @property
+    def get_all_message(self):
+        messageses= cache.get(self.cache_key_messages,[])
+        return messageses
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.room_data[key] = value
 
-        # Store data in the cache with a 1-day expiration (86400 seconds)
         cache.set(self.cache_key, self.room_data, timeout=86400)
-
+        cache.set(self.cache_key_messages,[],timeout=86400)
     def get_data(self):
         return cache.get(self.cache_key)
 
     def delete_data(self):
         cache.delete(self.cache_key)
+        cache.delete(self.cache_key_messages)
 
     @staticmethod
     def get_room_data(token):
-        cache_key = f"token{token}"  # Create the key based on the token
-        room_data = cache.get(cache_key)  # Retrieve data from the cache
-        return room_data if room_data else None  # Return all attributes or None if not found
-
+        cache_key = f"{token}"  
+        room_data = cache.get(cache_key) 
+        return room_data if room_data else None 
     def add_user(self, username):
         if username not in self.room_data["users"]:
-            self.room_data["users"].append(username)  # Add user to the list
-            cache.set(self.cache_key, self.room_data, timeout=86400)  # Update the cache
-            return True  # User was added successfully
-        return False  # User already exists
+            self.room_data["users"].append(username) 
+            cache.set(self.cache_key, self.room_data) 
+            return True  
+        return False 
     def remove_user(self, username):
         if username in self.room_data["users"]:
-            self.room_data["users"].remove(username)  # Remove user from the list
-            cache.set(self.cache_key, self.room_data, timeout=86400)  # Update the cache
+            self.room_data["users"].remove(username)  
+            cache.set(self.cache_key, self.room_data) 
+
     def user_exists(self, username):
         """Check if the user exists in the room."""
         return username in self.room_data["users"]
+    
 key=settings.KEY
 def encrypt_message(key, message):
     f = Fernet(key)
@@ -64,26 +74,21 @@ def decrypt_message(key, encrypted_message):
     decrypted_message = f.decrypt(encrypted_message_bytes).decode()
     return decrypted_message
 
-room_cache = RoomCache("123")
-
-# Set data
-room_cache.set_data(token=123, attr="value")
-
 @login_required
 @require_POST
 def create_room(request):
     data = json.loads(request.body)
 
-    # Cache key with the user and timestamp
+    now = datetime.datetime.now()
     current_user = str(request.user)
-    room_cache = RoomCache(key_of_room:=f"{current_user}{int(datetime.datetime.now().timestamp()*1000000)}")
+    room_cache = RoomCache(key_of_room:=f"{current_user}{int(now.timestamp()*1000000)}")
     room_cache.set_data(users=[], attr="value")
     
     # Get cached rooms for the user, default to an empty list if no cache is found
     y = cache.get(current_user, [])
 
     # Prepare new cache data with a timestamp one day ahead
-    expiration_time = datetime.datetime.now() + datetime.timedelta(days=1)
+    expiration_time = now + datetime.timedelta(days=1)
     new_entry = {key_of_room: expiration_time.timestamp()}
 
     # Remove any expired entries from the cache (entries with timestamps less than now)
@@ -96,7 +101,7 @@ def create_room(request):
 
     return JsonResponse({
         'success': True,
-        'room_id': 2323,
+        'room_id':key_of_room,
     })
 
 def Home(request,*kargs,**kwargs):
@@ -130,7 +135,6 @@ def Home(request,*kargs,**kwargs):
         y = cache.get(current_user:=str(request.user), [])
 
         # Prepare new cache data with a timestamp one day ahead
-        expiration_time = datetime.datetime.now() + datetime.timedelta(days=1)
 
         current_time = datetime.datetime.now().timestamp()
         y = [entry for entry in y if list(entry.values())[0] > current_time]

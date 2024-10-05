@@ -176,12 +176,15 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
+            console.log(data)
+            console.log(data.type)
             if (data.type === 'add_user') {
                 addUserToList(data.message.username);
             } else if (data.type === 'remove_user') {
                 removeUserFromList(data.message.username);
             } else if (data.type === 'send_message') {
-                addMessageToChat(data.message.username, data.message);
+                console.log(data,111111111111)
+                addMessageToChat(data.username, data.message);
             }
         };
 
@@ -232,7 +235,7 @@
                     ${!isSameSender ? (username === user ? 'You' : username) : ''}
                 </div>
                 <div class="message-content">
-                    <div class="message-text">${message.message}</div>
+                    <div class="message-text">${message}</div>
                 </div>
             `;
 
@@ -242,18 +245,23 @@
     });
 
     function addUserToList(username) {
-        const userList = document.getElementById('userList');
-        const existingUser = Array.from(userList.getElementsByTagName('li')).find(
-            user => user.textContent.toLowerCase() === username.toLowerCase()
-        );
+    const userList = document.getElementById('userList');
+    
+    // التأكد من عدم وجود العضو في القائمة مسبقاً
+    const existingUser = Array.from(userList.getElementsByTagName('li')).find(
+        user => user.textContent.toLowerCase() === username.toLowerCase()
+    );
+    
+    // إضافة العضو إذا لم يكن موجودًا بالفعل
+    if (!existingUser) {
+        const userItem = document.createElement('li');
+        userItem.textContent = username;
+        userItem.id = username;
+        userItem.classList.add('list-group-item'); // إضافة كلاس bootstrap لعنصر الـ <li>
         
-        if (!existingUser) {
-            const userItem = document.createElement('li');
-            userItem.textContent = username;
-            userItem.id = username;
-            userList.appendChild(userItem);
-        }
+        userList.appendChild(userItem);
     }
+}
 </script>
 
 </body>

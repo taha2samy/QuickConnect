@@ -15,7 +15,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path,include
 from rooms.views import Home,Room,create_room
 from django.conf.urls.static import static
 from django.conf import settings
@@ -25,6 +25,7 @@ urlpatterns = [
     path("",Home,name="Home"),
     path("room/<str:room_id>/",Room,name="Room"),
     path('create-room/', create_room, name='create_room'),
+    path("account/",include("accounts.urls"))
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

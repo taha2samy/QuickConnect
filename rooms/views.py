@@ -10,7 +10,9 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import json
+
 cache.clear()
+
 class RoomCache:
     def __init__(self, token):
         self.token = token
@@ -20,6 +22,7 @@ class RoomCache:
             "token_of_room": token, 
             "users": [],
         }
+        
     def add_message(self,message):
         messageses = cache.get(self.cache_key_messages,[])
         messageses.append(message)
@@ -77,13 +80,11 @@ def decrypt_message(key, encrypted_message):
 @login_required
 @require_POST
 def create_room(request):
-    data = json.loads(request.body)
-
     now = datetime.datetime.now()
     expiration_time = now + datetime.timedelta(seconds=settings.TIME_OUT)
     current_user = str(request.user)
     room_cache = RoomCache(key_of_room:=f"{current_user}{int(now.timestamp()*1000000)}")
-    room_cache.set_data(users=[],expair=expiration_time, attr="value")
+    room_cache.set_data(users=[],expair=expiration_time,owner=current_user, attr="value")
     
     # Get cached rooms for the user, default to an empty list if no cache is found
     y = cache.get(current_user, [])

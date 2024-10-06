@@ -42,9 +42,10 @@ ASGI_APPLICATION = 'QuickConnect.asgi.application'
 # Application definition
 
 INSTALLED_APPS = [
+    'accounts',
+    'rooms',
     'daphne',
     'channels',
-    'rooms',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -143,3 +144,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 TIME_OUT=86400 # in second
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]

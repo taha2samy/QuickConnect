@@ -54,6 +54,34 @@ To convert the setup instructions to use `virtualenv` instead of `pipenv`, follo
    ```bash
    python manage.py runserver
    ```
+7. **Copy the Unit Files**: Use the `cp` command to copy the service and timer files to the systemd directory:
+   ```bash
+   sudo cp unit_files/cleanup.service /etc/systemd/system/
+   sudo cp unit_files/cleanup.timer /etc/systemd/system/
+   ```
+
+8. **Reload Systemd Daemon**: After copying the files, reload the systemd daemon to recognize the new unit files:
+   ```bash
+   sudo systemctl daemon-reload
+   ```
+
+9. **Enable the Timer**: Enable the timer so that it starts automatically on boot:
+   ```bash
+   sudo systemctl enable cleanup.timer
+   ```
+
+10. **Start the Timer**: Start the timer immediately:
+   ```bash
+   sudo systemctl start cleanup.timer
+   ```
+
+## Checking the Status
+
+To verify that the timer is running, use the following command:
+```bash
+sudo systemctl status cleanup.timer
+```
+
 
 ---
 

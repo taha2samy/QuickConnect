@@ -59,6 +59,17 @@ To convert the setup instructions to use `virtualenv` instead of `pipenv`, follo
    sudo cp unit_files/cleanup.service /etc/systemd/system/
    sudo cp unit_files/cleanup.timer /etc/systemd/system/
    ```
+>[!WARNING]  
+> you must edit `unit_files/cleanup.service` acccroding the path of your project
+> unit_files/cleanup.service
+> ```
+> ExecStart=/bin/bash -c 'cd {full path}/project/ && {full path}/project/venv/bin/python manage.py cleanup'
+>
+> ```
+> You must edit `unit_files/cleanup.timer` according to the periodic time that removes expired files.
+>```
+> OnCalendar=daily
+>```
 
 8. **Reload Systemd Daemon**: After copying the files, reload the systemd daemon to recognize the new unit files:
    ```bash

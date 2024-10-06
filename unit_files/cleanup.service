@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Django Cleanup Command
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'cd {full path}/project/ && {full path}/project/venv/bin/python manage.py cleanup'
+User=user_that_use
+WorkingDirectory={full path}/project/
+
+[Install]
+WantedBy=multi-user.target

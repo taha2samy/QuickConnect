@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
     <title>{% block title %}My Site{% endblock %}</title>
+    
+    <!-- Include scripts in the head -->
     <script src="{% static 'javascript/jquery.min.js' %}"></script>
     <script src="{% static 'javascript/popper.min.js' %}"></script>
     <script src="{% static 'javascript/bootstrap.min.js' %}"></script>
@@ -18,14 +20,12 @@
 </head>
 
 <body>
-    {% block content %}{% endblock %}
+    {% include 'navbar.html' %}
 
-    <script src="{% static 'javascript/jquery.min.js' %}"></script>
-    <script src="{% static 'javascript/popper.min.js' %}"></script>
-    <script src="{% static 'javascript/bootstrap.min.js' %}"></script>
-    <script src="{% static 'javascript/bootstrap-stackpath.min.js' %}"></script>
-    <script src="{% static 'javascript/popper-core.min.js' %}"></script>
-    <script src="{% static 'javascript/qrious.min.js' %}"></script>
+
+    {% block content %}
+    
+    {% endblock %}
 </body>
 
 </html>

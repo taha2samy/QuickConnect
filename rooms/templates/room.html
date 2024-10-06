@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet"  href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"> 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
-    <title>Chat Room - Quick Chat</title>
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Home{% endblock %}
+{% block content %}
     <style>
         body {
             background-color: #f0f2f5;
@@ -91,8 +88,7 @@
             text-align: center;
         }
     </style>
-</head>
-<body>
+
 
     <div class="container py-4">
         <h1 class="mb-4 text-center"><i class="fas fa-comments"></i> Quick Chat</h1>
@@ -290,6 +286,4 @@ function addUserToList(username) {
 
     });
 </script>
-
-</body>
-</html>
+{% endblock %}

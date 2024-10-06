@@ -6,6 +6,11 @@ from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
+from django.contrib.auth.views import LogoutView
+
+class CustomLogoutView(LogoutView):
+    next_page = 'Home'
+    template_name="logout.html"  
 
 class SignUpView(AccessMixin, TemplateView):
     template_name = 'signup.html'

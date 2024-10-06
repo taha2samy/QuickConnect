@@ -17,35 +17,47 @@ To install the dependencies and run the project, follow the steps below:
 
 ### Using `pyenv` and `pipenv`:
 
-1. Install [pyenv](https://github.com/pyenv/pyenv) to manage Python versions:
-   ```bash
-   pyenv install 3.10.10
-   pyenv local 3.10.10
-   ```
+To convert the setup instructions to use `virtualenv` instead of `pipenv`, follow these steps:
 
-2. Clone the repository:
+---
+
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/taha2samy/QuickConnect.git
    cd quick-connect
    ```
 
-3. Install [pipenv](https://pipenv.pypa.io/en/latest/) to manage the environment and packages:
+2 **Install [virtualenv](https://virtualenv.pypa.io/en/latest/) to manage the environment:**
    ```bash
-   pipenv install
+   pip install virtualenv
    ```
 
-4. Activate the virtual environment:
+3. **Create and activate the virtual environment:**
    ```bash
-   pipenv shell
+   virtualenv venv
+   source venv/bin/activate  # On macOS/Linux
+   # OR
+   venv\Scripts\activate  # On Windows
    ```
-5. Build the project Database:
+
+4. **Install the required packages:**
    ```bash
-   pipenv run python manage.py migrate
-   ``` 
-6. Run the application:
-   ```bash
-   pipenv run python manage.py runserver
+   pip install -r requirements.txt
    ```
+
+5. **Build the project database:**
+   ```bash
+   python manage.py migrate
+   ```
+
+6. **Run the application:**
+   ```bash
+   python manage.py runserver
+   ```
+
+---
+
+This conversion replaces `pipenv` with `virtualenv` for managing the environment, using a `venv` folder and the `requirements.txt` file for package installation.
 
 ## Usage
 
@@ -57,37 +69,78 @@ To install the dependencies and run the project, follow the steps below:
 ## Project Structure
 
 ```plaintext
-|   .gitignore
-|   .python-version
-|   db.sqlite3
-|   manage.py
-|   Pipfile
-|   Pipfile.lock
-|   readme.md
-|
-+---QuickConnect
-|       asgi.py
-|       settings.py
-|       urls.py
-|       wsgi.py
-|       __init__.py
-|
-\---rooms
-    |   admin.py
-    |   apps.py
-    |   consumers.py
-    |   models.py
-    |   routing.py
-    |   tests.py
-    |   views.py
-    |   __init__.py
-    |
-    +---migrations
-    |       __init__.py
-    |
-    \---templates
+│   .gitignore
+│   .python-version
+│   db.sqlite3
+│   LICENSE
+│   logo.svg
+│   manage.py
+│   Pipfile
+│   Pipfile.lock
+│   readme.md
+│
+├───accounts
+│   │   admin.py
+│   │   apps.py
+│   │   models.py
+│   │   tests.py
+│   │   urls.py
+│   │   views.py
+│   │   __init__.py
+│   │
+│   ├───migrations
+│   │       __init__.py
+│   │
+│   ├───static
+│   │   ├───css
+│   │   │       all.min.css
+│   │   │       bootstrap.min.css
+│   │   │
+│   │   ├───javascript
+│   │   │       bootstrap-stackpath.min.js
+│   │   │       bootstrap.min.js
+│   │   │       jquery.min.js
+│   │   │       popper-core.min.js
+│   │   │       popper.min.js
+│   │   │       qrious.min.js
+│   │   │
+│   │   └───webfonts
+│   │           fa-solid-900.ttf
+│   │           fa-solid-900.woff
+│   │           fa-solid-900.woff2
+│   │
+│   └───templates
+│           login.html
+│           signup.html
+│
+├───media
+│   └───temp
+├───QuickConnect
+│       asgi.py
+│       settings.py
+│       urls.py
+│       wsgi.py
+│       __init__.py
+│
+└───rooms
+    │   admin.py
+    │   apps.py
+    │   consumers.py
+    │   models.py
+    │   routing.py
+    │   tests.py
+    │   views.py
+    │   __init__.py
+    │
+    ├───migrations
+    │       __init__.py
+    │
+    └───templates
+            base.html
             Home.html
             room.html
+
+
 ```
 
 ## Contributing

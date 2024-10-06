@@ -150,6 +150,7 @@ This conversion replaces `pipenv` with `virtualenv` for managing the environment
 │   │
 │   └───templates
 │           login.html
+│           logout.html
 │           signup.html
 │
 ├───media
@@ -161,23 +162,32 @@ This conversion replaces `pipenv` with `virtualenv` for managing the environment
 │       wsgi.py
 │       __init__.py
 │
-└───rooms
-    │   admin.py
-    │   apps.py
-    │   consumers.py
-    │   models.py
-    │   routing.py
-    │   tests.py
-    │   views.py
-    │   __init__.py
-    │
-    ├───migrations
-    │       __init__.py
-    │
-    └───templates
-            base.html
-            Home.html
-            room.html
+├───rooms
+│   │   admin.py
+│   │   apps.py
+│   │   consumers.py
+│   │   models.py
+│   │   routing.py
+│   │   tests.py
+│   │   views.py
+│   │   __init__.py
+│   │
+│   ├───management
+│   │   └───commands
+│   │           cleanup.py
+│   │
+│   ├───migrations
+│   │       __init__.py
+│   │
+│   └───templates
+│           base.html
+│           Home.html
+│           navbar.html
+│           room.html
+│
+└───unit_files
+        cleanup.service
+        cleanup.timer
 
 
 ```

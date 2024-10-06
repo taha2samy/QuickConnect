@@ -135,7 +135,7 @@ def create_room(request):
 
     # Add the new entry to the cache
     y.append(new_entry)
-    cache.set(current_user, y, None)
+    cache.set(current_user, y,settings.TIME_OUT )
 
     return JsonResponse({
         'success': True,

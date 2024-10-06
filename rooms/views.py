@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+import random
 
 cache.clear()
 
@@ -30,17 +31,36 @@ class RoomCache:
     def get_all_message(self):
         messageses= cache.get(self.cache_key_messages,[])
         return messageses
+    @staticmethod
+    def remove_expired_rooms():
+        rooms = cache.get("Rooms", [])
+
+        current_time = datetime.datetime.now()
+
+        valid_rooms = [
+            room for room in rooms 
+            if room.get('expair') is None or room['expair'] > current_time
+        ]
+
+        cache.set("Rooms", valid_rooms, None)
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.room_data[key] = value
-
+        RoomCache.remove_expired_rooms()
+        rooms=cache.get("Rooms",[])
+        rooms.append({self.cache_key:kwargs["expair"]})
+        cache.set("Rooms",rooms,None)
         cache.set(self.cache_key, self.room_data, timeout=settings.TIME_OUT)
         cache.set(self.cache_key_messages,[],timeout=settings.TIME_OUT)
     def get_data(self):
         return cache.get(self.cache_key)
 
     def delete_data(self):
+        """Delete a specific room from the cached Rooms list by room ID."""
+        rooms = cache.get("Rooms", [])
+        updated_rooms = [room for room in rooms if self.cache_key != list(room.keys())[0]]
+        cache.set("Rooms", updated_rooms)
         cache.delete(self.cache_key)
         cache.delete(self.cache_key_messages)
 
@@ -79,10 +99,27 @@ def decrypt_message(key, encrypted_message):
 @login_required
 @require_POST
 def create_room(request):
+    rooms = cache.get("Rooms", [])
+    room_id = None
+    
+    if rooms:
+        
+        existing_ids = {int(list(room.keys())[0]) for room in rooms}
+
+        for i in range(1, 1000000):  # Adjust the range as needed
+            random_number = random.randint(1, i)
+
+            if random_number not in existing_ids:
+                room_id = random_number
+                break 
+
+    else:
+        room_id = random.randint(1, 10)
+
     now = datetime.datetime.now()
     expiration_time = now + datetime.timedelta(seconds=settings.TIME_OUT)
     current_user = str(request.user)
-    room_cache = RoomCache(key_of_room:=f"{current_user}{int(now.timestamp()*1000000)}")
+    room_cache = RoomCache(key_of_room:=room_id)
     room_cache.set_data(users=[],expair=expiration_time,owner=current_user, attr="value")
     
     # Get cached rooms for the user, default to an empty list if no cache is found

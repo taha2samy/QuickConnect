@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.conf import settings
 import random
 
-cache.clear()
+
 
 class RoomCache:
     def __init__(self, token):
@@ -84,7 +84,7 @@ class RoomCache:
         """Check if the user exists in the room."""
         return username in self.room_data["users"]
     
-key=settings.KEY
+
 def encrypt_message(key, message):
     f = Fernet(key)
     encrypted_message = f.encrypt(message.encode())
@@ -153,20 +153,20 @@ def Home(request,*kargs,**kwargs):
             if request.user.is_authenticated:
                 # User is authenticated
                 room.add_user(request.user)
-                return redirect('Room', room_id=str(encrypt_message(key, secret_code)))
+                return redirect('Room', room_id=str(encrypt_message(settings.KEY, secret_code)))
             else:
                 # User is not authenticated
                 username = request.POST.get("username")
 
                 if request.session.get('username'):
                     room.add_user(request.session['username'])
-                    return redirect('Room', room_id=str(encrypt_message(key, secret_code)))
+                    return redirect('Room', room_id=str(encrypt_message(settings.KEY, secret_code)))
                 else:
                     # No username in session, create one
                     request.session['username'] = f"{username}{int(datetime.datetime.now().timestamp() * 1000000)}"
                     room.add_user(request.session['username'])
                     request.session.set_expiry(settings.TIME_OUT)  # Set session expiry to 1 day
-                    return redirect('Room', room_id=str(encrypt_message(key, secret_code)))
+                    return redirect('Room', room_id=str(encrypt_message(settings.KEY, secret_code)))
         else:
             messages.error(request, "Room does not exist or you cannot join.")
     if request.user.is_authenticated:
@@ -186,7 +186,7 @@ def Home(request,*kargs,**kwargs):
 
 
 def Room(request, room_id, *kargs, **kwargs):
-    secretcode = decrypt_message(key, room_id)
+    secretcode = decrypt_message(settings.KEY, room_id)
     room = RoomCache(secretcode)
     room.room_data = room.get_data()
 
